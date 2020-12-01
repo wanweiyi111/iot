@@ -1,0 +1,14 @@
+################################
+# common工程本身所需的配置属性 #
+################################
+
+config:
+  url:
+    token: http://${app.token.hostname}:${app.token.port}/api/token/user/getUserInfoByToken
+    log: http://${app.log.hostname}:${app.log.port}/api/log/
+
+aspect:
+  authority:
+    not-app: token, etc, charger, scheduler
+  log-record:
+    not-app: token, log, etc, charger, alarm, scheduler

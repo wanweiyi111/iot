@@ -1,0 +1,106 @@
+app:
+  name: report
+  description: 报表
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    unions:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true #指定初始化数据源，是否用data.sql来初始化，默认: true
+      name: unions
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/unions?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true
+      username: ${app.db.username}
+      password: ${app.db.password}
+    light:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: light
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/light?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    screen:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: screen
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/screen?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    camera:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: camera
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/camera?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    wifi:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: wifi
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/wifi?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    pole:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: pole
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/pole?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    report:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: report
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/report?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    sensor:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: sensor
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/sensor?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    charger:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: charger
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/charger?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+    radar:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      initialize: true
+      name: radar
+      url: jdbc:mysql://${app.db.hostname}:${app.db.port}/radar?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+
+    primary:
+      jdbc-url: jdbc:mysql://${app.db.hostname}:${app.db.port}/report?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useSSL=false&useLegacyDatetimeCode=false&zeroDateTimeBehavior=convertToNull
+      username: ${app.db.username}
+      password: ${app.db.password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.alibaba.druid.pool.DruidDataSource
+
+config:
+  url:
+    light: http://${app.light.hostname}:${app.light.port}/api/light/info/findByOnNetCount
+    camera: http://${app.camera.hostname}:${app.camera.port}/api/camera/info/findByOnNetCount
+    screen: http://${app.screen.hostname}:${app.screen.port}/api/screen/info/findByOnNetCount
+    wifi: http://${app.wifi.hostname}:${app.wifi.port}/api/wifi/info/findByOnNetCount
+    pole: http://${app.pole.hostname}:${app.pole.port}/api/sensor/info/findByOnNetCount
+    sensor: http://${app.sensor.hostname}:${app.sensor.port}/api/sensor/info/findByOnNetCount
+    radar: http://${app.radar.hostname}:${app.radar.port}/api/radar/info/findByOnNetCount
+    etc: http://${app.camera.hostname}:${app.camera.port}/api/camera/info/findByOnNetCount/etc
+    lightCount: http://${app.light.hostname}:${app.light.port}/api/light/info/findByProjectId

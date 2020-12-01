@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.ChargeReportDao">
+
+    <select id="findTodayCounts" resultType="com.hzyw.basic.dos.ChargeOrderDO">
+        SELECT
+        *
+        FROM charge_order_t t
+        where
+        DATE_FORMAT( t.end_time, '%Y-%m-%d' )=DATE_FORMAT(now(), '%Y-%m-%d' )
+    </select>
+
+    <select id="findWeekReport" parameterType="com.hzyw.basic.vo.SearchLightPowerVO"
+            resultType="com.hzyw.basic.dos.ChargeReportDO">
+        SELECT
+        <include refid="select_columns"></include>
+        FROM charge_report_t t
+        where
+        t.project_id=#{projectId} and
+        DATE_FORMAT( t.report_date, '%Y-%m-%d' ) in
+        <foreach collection="searchDate" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m-%d' )
+        </foreach>
+    </select>
+
+    <sql id="select_columns">
+    charge_report_id as chargeReportId,
+    sign_code as signCode,
+    total_number as totalNumber,
+    total_time as totalTime,
+    total_power as totalPower,
+    project_id as projectId,
+    station_id as stationId,
+    report_date as reportDate,
+    report_type as reportType,
+    report_dimension as reportDimension,
+    equipment_name as equipmentName
+    </sql>
+
+
+
+</mapper>

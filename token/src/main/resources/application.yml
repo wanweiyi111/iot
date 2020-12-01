@@ -1,0 +1,30 @@
+app:
+  name: token
+  description: 权限
+
+spring:
+  redis:
+    host: ${app.redis.hostname}
+    port: ${app.redis.port}
+    password: ${app.redis.password}
+    jedis:
+      pool:
+        min-idle: 8
+        max-idle: 500
+        max-active: 2000
+        max-wait: 10000
+    timeout: 0
+
+auth:
+  # 是否异步记录用户操作日志
+  openAopLog: true
+  # 单次最大批量入库数量
+  max:
+    batch:
+      insert:
+        num: 1000
+  shiro:
+    # 后端免认证接口 url
+    anonUrl: /login,/logout/**,/regist,/user/check/**,/api/**
+    # token有效期，单位秒
+    jwtTimeOut: 36000

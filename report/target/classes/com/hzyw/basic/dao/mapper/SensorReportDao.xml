@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.SensorReportDao">
+
+    <select id="findWeekReport" parameterType="com.hzyw.basic.vo.SearchLightPowerVO"
+            resultType="com.hzyw.basic.dos.SensorReportDO">
+        SELECT
+        AVG(t.pm10) as pm10,
+        AVG(t.humidity) as humidity,
+        AVG(t.noise) as noises,
+        AVG(t.pressure) as pressure,
+        AVG(t.pm25) as pm25,
+        AVG(t.radiation) as radiation,
+        AVG(t.rainfall) as rainfall,
+        AVG(t.temperature) as temperature,
+        AVG(t.ultraviolet) as ultraviolet,
+        AVG(t.wind_speed) as windSpeed,
+        AVG(t.wind_direction) as windDirection,
+        DATE_FORMAT(t.create_time, '%Y-%m-%d') as reportDate,
+        DATE_FORMAT(t.create_time, '%Y-%m-%d') as createTime
+        FROM
+        sensor_runtime_t t
+        WHERE
+        <if test="projectId!=null">
+            t.project_id=#{projectId} and
+        </if>
+        DATE_FORMAT( t.create_time, '%Y-%m-%d' ) in
+        <foreach collection="searchDate" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m-%d' )
+        </foreach>
+        GROUP BY
+        createTime
+    </select>
+
+    <select id="findTodayCounts" resultType="com.hzyw.basic.dos.SensorReportDO">
+        SELECT
+        <include refid="sensor_runtime_columns"></include>
+        FROM sensor_runtime_t t
+        where
+        DATE_FORMAT( t.update_time, '%Y-%m-%d' )=DATE_FORMAT(now(), '%Y-%m-%d')
+    </select>
+
+    <sql id="select_columns">
+    t.sensor_report_id   as sensorReportId,
+    t.sign_code         as signCode,
+    t.pm25              as pm25,
+    t.pm10              as pm10,
+    t.noise             as noise,
+    t.temperature       as temperature,
+    t.humidity          as humidity,
+    t.wind_direction     as windDirection,
+    t.rainfall          as rainfall,
+    t.pressure          as pressure,
+    t.wind_speed         as windSpeed,
+    t.report_date       as reportDate,
+    t.report_type       as reportType,
+    t.equipment_name    as equipmentName,
+    t.report_dimension  as reportDimension
+    </sql>
+
+    <sql id="sensor_runtime_columns">
+        sum(t.pm25)/count(*)   AS pm25,
+        sum(t.pm10)/count(*)   AS pm10,
+        sum(t.noise)/count(*)  AS noise,
+        sum(t.temperature)/count(*) AS temperature,
+        sum(t.humidity)/count(*) AS humidity,
+        sum(t.pressure)/count(*) AS pressure,
+        sum(t.rainfall)/count(*) AS rainfall,
+        sum(t.wind_speed)/count(*) AS windSpeed,
+        sum(t.wind_direction)/count(*) AS windDirection,
+        t.project_id as signCode
+    </sql>
+
+
+</mapper>

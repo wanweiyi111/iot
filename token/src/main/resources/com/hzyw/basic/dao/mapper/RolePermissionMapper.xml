@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.RolePermissionMapper">
+    <insert id="insertRolePermission" parameterType="com.hzyw.basic.dos.RolePermissionDO" >
+        insert into au_role_permission_t
+        (ROLE_ID,
+         PERMISSION_ID,
+         appId
+         )
+        values (
+        #{rolePermission.ROLEID,jdbcType=NUMERIC},
+        #{rolePermission.permissionId,jdbcType=NUMERIC},
+        #{rolePermission.appId,jdbcType=NUMERIC}
+        )
+    </insert>
+
+    <insert id="insertRolePermissionList">
+        insert ignore au_role_permission_t (ID,ROLE_ID,PERMISSION_ID)
+        values
+        <foreach collection="permissionList" item="permissionId" index="index" separator=",">
+            (concat('10',#{roleId},#{permissionId}),#{roleId}, #{permissionId})
+        </foreach>
+    </insert>
+
+    <select id="selectRolePermissionByRoleId" resultType="com.hzyw.basic.dos.RolePermissionDO">
+        SELECT
+        rp.id id,
+        rp.appId appId,
+        rp.ROLE_ID ROLEID,
+        rp.PERMISSION_ID permissionId
+        FROM
+            au_role_t r
+            LEFT JOIN au_role_permission_t rp ON ( r.ROLE_ID = rp.ROLE_ID )
+        WHERE
+            r.ROLE_ID = #{roleId,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByRoleId">
+        <foreach collection="list" index="index" item="roleId" open=""
+                 separator=";" close="">
+            DELETE FROM au_role_permission_t
+            WHERE ROLE_ID=#{roleId}
+        </foreach>
+    </delete>
+</mapper>

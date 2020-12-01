@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.ReportDao">
+
+    <select id="findByPercentage" parameterType="com.hzyw.basic.vo.SearchVO"
+            resultType="com.hzyw.basic.vo.ReportVO">
+        SELECT
+        <include refid="select_columns"></include>
+        FROM report_info_t t
+        where
+        t.project_id=#{projectId}
+        <if test="searchType==1">
+           and DATE_FORMAT( t.report_date, '%Y-%m-%d' ) in
+            <foreach collection="dates" item="date" index="index" open="("
+                     close=")" separator=",">
+                DATE_FORMAT( #{date}, '%Y-%m-%d' )
+            </foreach>
+            and report_type="light_day"
+        </if>
+
+        <if test="searchType==2">
+            and DATE_FORMAT( t.report_date, '%Y-%m-%d' ) in
+            <foreach collection="dates" item="date" index="index" open="("
+                     close=")" separator=",">
+                DATE_FORMAT( #{date}, '%Y-%m-%d' )
+            </foreach>
+            and report_type="light_day"
+        </if>
+
+        <if test="searchType==3">
+            and DATE_FORMAT( t.report_date, '%Y-%m' ) in
+            <foreach collection="dates" item="date" index="index" open="("
+                     close=")" separator=",">
+                DATE_FORMAT( #{date}, '%Y-%m' )
+            </foreach>
+            and report_type="month"
+        </if>
+    </select>
+
+    <select id="findByReportList" parameterType="java.util.List"
+            resultType="com.hzyw.basic.vo.ReportVO">
+        SELECT
+        <include refid="select_columns"></include>
+        FROM report_info_t t
+        where
+        DATE_FORMAT( t.report_date, '%Y-%m-%d' ) in
+        <foreach collection="list" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m-%d' )
+        </foreach>
+
+    </select>
+
+    <sql id="select_columns">
+        t.report_id   as	reportId,
+        t.lighting_rate   as	lightingRate,
+        t.energy_saving   as	energySaving,
+        t.equipment_type   as	equipmentType,
+        t.failure_count   as	failureCount,
+        t.failure_rate   as	failureRate,
+        t.normal_count   as	normalCount,
+        t.project_id   as	projectId,
+        t.project_total   as	projectTotal,
+        t.report_date   as	reportDate
+    </sql>
+
+    <select id="getCountByToday"  resultType="com.hzyw.basic.dos.LightRuntimeDO">
+        SELECT
+            t.project_id as projectId,
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType,
+            t.equipment_status as equipmentStatus,
+            t.work_time as workTime,
+            t.active_power as activePower,
+            t.update_time as updateTime
+        FROM
+            light.light_runtime_t t
+        WHERE
+            DATE_Format(
+                t.update_time,
+                '%Y-%m-%d'
+            ) = DATE_Format(NOW(), '%Y-%m-%d')
+    </select>
+
+    <select id="findCountByMonth" parameterType="java.util.List" resultType="com.hzyw.basic.dos.LightRuntimeDO">
+        SELECT
+            t.project_id as projectId,
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType,
+            t.equipment_status as equipmentStatus,
+            t.work_time as workTime,
+            t.active_power as activePower,
+        t.update_time as updateTime
+        FROM
+            light.light_runtime_t t
+        WHERE
+            DATE_Format(
+        t.update_time,
+                '%Y-%m-%d'
+            ) in
+        <foreach collection="list" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m-%d' )
+        </foreach>
+    </select>
+
+    <select id="findBindings" resultType="com.hzyw.basic.vo.PoleEquipmentVO">
+        SELECT
+        t1.equipment_code as equipmentCode,
+        t.equipment_name as equipmentName,
+        t1.pole_id as poleId,
+        t1.equipment_type as equipmentType
+        FROM
+        pole_equipment_t t1
+				left JOIN
+        pole_info_t t
+				ON t1.pole_id=t.id
+    </select>
+
+    <select id="findAllLight" resultType="com.hzyw.basic.dos.LightRuntimeDO">
+        SELECT distinct
+            t.equipment_code as equipmentCode,
+            t.equipment_name as equipmentName,
+            t.project_id as projectId,
+            t.rated_power as ratedPower
+        FROM
+            light.light_info_t t
+    </select>
+
+
+</mapper>

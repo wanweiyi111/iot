@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.LogMapper">
+    <select id="findAuLogTotalCount" resultType="int">
+        SELECT count(1)  FROM au_log_t
+        <where>
+            <if test="userName!=null and userName!=''">
+                USERNAME like "%"#{userName}"%"
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectByParameter"  resultType="com.hzyw.basic.dos.LogDO">
+        SELECT
+        <include refid="commonsql"></include>
+        <where>
+            <if test="userName!=null and userName!=''">
+                USERNAME like "%"#{userName}"%"
+            </if>
+        </where>
+        ORDER BY CREATE_TIME DESC limit #{currentPage},#{pageSize}
+    </select>
+
+    <sql id="commonsql">
+            ID id,
+            USERNAME userName,
+            OPERATION operation,
+            TIME time,
+            METHOD method,
+            PARAMS params,
+            IP ip,
+            CREATE_TIME createTime,
+            location location
+            FROM au_log_t
+    </sql>
+
+    <insert id="insertLogDO" parameterType="com.hzyw.basic.dos.LogDO" >
+        insert into au_log_t
+        (
+            USERNAME,
+            OPERATION,
+            TIME,
+            METHOD,
+            PARAMS,
+            IP,
+            CREATE_TIME,
+            location 
+        )
+        values (
+        #{auLog.userName,jdbcType=VARCHAR},
+        #{auLog.operation,jdbcType=VARCHAR},
+        #{auLog.time,jdbcType=NUMERIC},
+        #{auLog.method,jdbcType=VARCHAR},
+        #{auLog.params,jdbcType=VARCHAR},
+        #{auLog.ip,jdbcType=VARCHAR},
+        #{auLog.createTime,jdbcType=DATE},
+        #{auLog.location,jdbcType=VARCHAR}
+        )
+    </insert>
+
+
+</mapper>

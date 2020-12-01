@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.DashBoardDao">
+	<select id="stateAlarmNumMonthly" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT `project_id`,
+		date_format(create_time, '%Y-%m') as nYearMonth,
+		COUNT(*) AS Alarm_Total_CNT
+		FROM `unions`.`exception_t`
+		WHERE `project_id`= #{projectId}
+		and `equipment_type`= '4240'
+		and `fault_description`= '紧急报警开始'
+		and date_sub(now(), interval 12 month)
+		and now()
+		group by `project_id`,
+		date_format(create_time, '%Y-%m')
+	</select>
+
+	<select id="stateLightEnergyMonthly" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT project_id,nYearMonth,SUM(Light_Energy_Consumption) Total_Light_Energy_Consumption FROM
+		(
+			SELECT `project_id` ,`equipment_code` ,date_format(create_time,'%Y-%m')
+			nYearMonth, 12*AVG(`voltage`) * AVG(`current`)/(1000*1000*1000) as
+			Light_Energy_Consumption FROM `light`.`light_runtime_t`
+			WHERE `project_id` =#{projectId} AND `voltage` >0 AND `current` >0
+			and date_sub(now(),interval 12 month) and now()
+			group by `project_id` ,`equipment_code` ,date_format(create_time,'%Y-%m')
+		) Light
+		group by project_id,nYearMonth
+	</select>
+	
+	<select id="stateWifiLogonUserMonthly" resultType="com.alibaba.fastjson.JSONObject">
+		select t2.`project_id`,
+		       date_format(t1.`created_date`, '%Y-%m') nYearMonth,
+		       COUNT(*) WIFI_ACCESS_QTY
+		  from `user_run_t` t1
+		  inner join `wifi_info_t` t2 on t1.equipment_code= t2.equipment_code
+		 where t1.user_status= 'wifi_user_up' and date_sub(now(), interval 12 month)
+		   and now()
+		   and t2.project_id= #{projectId}
+		 group by t2.project_id,
+		         date_format(t1.`created_date`, '%Y-%m')
+	</select>
+	
+	<select id="stateExceptionNumMonthly" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT equipment_type,equipment_Type_Name,SUM(EXCEPTION_TOTAL_QTY) EXCEPTION_TOTAL_QTY
+		FROM
+		(
+		SELECT `equipment_type`,
+		CASE equipment_type WHEN 4112 THEN '智慧照明' WHEN 4144 THEN '信息发布' WHEN 4128 THEN '安防监控' WHEN 4176 THEN '环境监测' WHEN 4192 THEN '智慧雷达' WHEN 4129 THEN '智慧WIFI' WHEN 4208 THEN '智能柜锁' WHEN 4240 THEN '应急呼叫' WHEN 4272 THEN '公共广播' WHEN 4096 THEN '边缘计算网关' WHEN 8192 THEN 'PLC集中控制器' WHEN 8193 THEN '充电桩' END equipment_Type_Name,
+		COUNT(*) EXCEPTION_TOTAL_QTY
+		FROM `unions`.`exception_t` t
+		WHERE t.`project_id`= #{projectId}
+		AND YEAR(t.`update_time`)= YEAR(NOW())
+		GROUP BY `equipment_type`
+		UNION ALL
+		SELECT * FROM
+		(
+			SELECT '4112' equipment_type ,'智慧照明' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4128' equipment_type ,'安防监控' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4144' equipment_type ,'信息发布' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4176' equipment_type ,'环境监测' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4192' equipment_type ,'智慧雷达' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4208' equipment_type ,'智能柜锁' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4240' equipment_type ,'应急呼叫' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4272' equipment_type ,'公共广播' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+			UNION
+			SELECT '4129' equipment_type ,'智慧WIFI' equipment_Type_Name ,0 EXCEPTION_TOTAL_QTY FROM DUAL
+		) TEMP
+		) TEMP1 WHERE equipment_Type_Name != ''
+		GROUP BY equipment_type,equipment_Type_Name
+	</select>
+	
+	
+	<!-- 统计各种设备数量 ，暂定界面只展示9个，其他展示不下了 -->
+	<select id="countDevNumscreen" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `screen`.`screen_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumlight" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum from `light`.`light_info_t`  t where t.`project_id`  =#{projectId}
+	</select>
+	<select id="countDevNumcamera" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `camera`.`camera_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumsensor" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `sensor`.`env_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumalarm" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `alarm`.`alarm_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumwifi" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `wifi`.`wifi_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumunionsLock" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `unions`.`lock_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumunionsHorn" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `unions`.`horn_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	<select id="countDevNumradar" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT COUNT(*) deviceNum FROM `radar`.`radar_info_t` t WHERE t.`project_id` =#{projectId}
+	</select>
+	
+	<!-- 统计各种设备 在线/离线/故障 数量 ，暂定界面只展示9个，其他展示不下了 -->
+	<select id="statAllDevStatus" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from screen.screen_info_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from light.light_info_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from camera.camera_info_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from alarm.alarm_info_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from wifi.wifi_info_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from unions.lock_t t
+		where t.project_id=#{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from unions.horn_t t
+		where t.project_id= #{projectId}
+		union all
+		SELECT
+		IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+		IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+		IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+		IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+		IFNULL(COUNT(t.equipment_status),0) allTotal,
+		IFNULL( 4144, 0 ) equipmentType
+		from radar.radar_info_t t
+		where t.project_id=#{projectId}
+		 <!--SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from screen.screen_info_t t
+        where t.project_id=#{projectId}
+	  union all
+		 SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from light.light_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from camera.camera_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from sensor.env_info_t t
+        where t.project_id=#{projectId}
+	union all
+		SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from alarm.alarm_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from wifi.wifi_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+        IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+        IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+        IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+        IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+        IFNULL(COUNT(t.equipment_status),0) allTotal,
+        t.equipment_type as equipmentType
+        from unions.lock_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+        IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+        IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+        IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+        IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+        IFNULL(COUNT(t.equipment_status),0) allTotal,
+        t.equipment_type as equipmentType
+        from unions.horn_t t
+        where t.project_id= #{projectId}
+	union all
+		 SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)neworkOnTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.equipment_type as equipmentType
+        from radar.radar_info_t t
+        where t.project_id=#{projectId}-->
+	</select>
+
+	<!-- 查询当前项目下的所有设备列表，只返回设备ID -->
+	<select id="selectAllDevCodeByProjectId" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from screen.screen_info_t t
+        where t.project_id=#{projectId}
+	  union all
+		 SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from light.light_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from camera.camera_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from sensor.env_info_t t
+        where t.project_id=#{projectId}
+	union all
+		SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from alarm.alarm_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+            t.equipment_code as equipmentCode,
+            t.equipment_type as equipmentType
+        from wifi.wifi_info_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+        t.equipment_code as equipmentCode,
+        t.equipment_type as equipmentType
+        from unions.lock_t t
+        where t.project_id=#{projectId}
+	union all
+		 SELECT
+        t.equipment_code as equipmentCode,
+        t.equipment_type as equipmentType
+        from unions.horn_t t
+        where t.project_id= #{projectId}
+	union all
+		 SELECT
+            t.equipment_code as equipmentCode ,
+            t.equipment_type as equipmentType
+        from radar.radar_info_t t
+        where t.project_id=#{projectId}
+	</select>
+	<!--  select id="statStatusCharger" resultType="com.alibaba.fastjson.JSONObject"> 充电桩
+	SELECT
+            IFNULL(sum(case t.equipment_status when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.equipment_status when "0" then 1 end),0)errorTotal,
+            IFNULL(sum(case t.network_state when "1" then 1 end),0)onTotal,
+            IFNULL(sum(case t.network_state when "0" then 1 end),0)offTotal,
+            IFNULL(COUNT(t.equipment_status),0) allTotal,
+            t.project_id as projectId
+        from charge_info_t t
+        where t.project_id=#{projectId}
+	 </select-->
+    
+    
+    
+    
+    
+</mapper>

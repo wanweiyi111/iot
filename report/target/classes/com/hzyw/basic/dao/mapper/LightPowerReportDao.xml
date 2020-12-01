@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.LightPowerReportDao">
+<select id="findWeekReport" parameterType="com.hzyw.basic.vo.SearchLightPowerVO"
+        resultType="com.hzyw.basic.dos.LightPowerReportDO">
+    SELECT
+    <include refid="select_columns"></include>
+    FROM power_report_t t
+    where
+    t.report_dimension=#{searchDimension}
+    <if test="searchType!='year'">
+        and  DATE_FORMAT( t.report_date, '%Y-%m-%d' ) in
+        <foreach collection="searchDate" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m-%d' )
+        </foreach>
+    </if>
+    <if test="searchType='year'">
+        and DATE_FORMAT( t.report_date, '%Y-%m' ) in
+        <foreach collection="searchDate" item="date" index="index" open="("
+                 close=")" separator=",">
+            DATE_FORMAT( #{date}, '%Y-%m' )
+        </foreach>
+    </if>
+</select>
+
+
+    <select id="findEnergySaving" resultType="com.hzyw.basic.dos.LightPowerReportDO">
+        SELECT
+        <include refid="select_columns"></include>
+        FROM power_report_t t
+        where
+        t.report_dimension='project'
+            and  DATE_FORMAT( t.report_date, '%Y-%m-%d' )=DATE_FORMAT(now(), '%Y-%m-%d')
+          and t.sign_code=#{id}
+    </select>
+
+    <sql id="select_columns">
+    t.power_report_id   as PowerReportId,
+    t.sign_code         as signCode,
+    t.electric_energy    as electricEnergy,
+    t.save_energy       as saveEnergy,
+    t.report_date       as reportDate,
+    t.report_type       as reportType,
+    t.equipment_name    as equipmentName,
+    t.report_dimension  as reportDimension
+    </sql>
+
+
+</mapper>

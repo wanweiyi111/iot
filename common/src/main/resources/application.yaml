@@ -1,0 +1,160 @@
+##################################
+# 公共配置属性（提供给其它工程） #
+##################################
+
+server:
+  servlet:
+    context-path: /api/${app.name}
+  port: ${app.${app.name}.port}
+
+app:
+  smart:
+    hostname: 127.0.0.1 #120.78.80.234 #192.168.3.183 #120.79.223.229 #120.79.223.229 #120.24.34.198 #192.168.3.183 #127.0.0.1
+  iot:
+    hostname: ${app.smart.hostname}
+    port: 8081
+  db:
+    hostname: 120.78.80.234 #${app.smart.hostname} #rm-wz9j84m1bw68106s9mo.mysql.rds.aliyuncs.com # ${app.smart.hostname}
+    port: 3306
+    username: root #hzmysql
+    password: Hzyw@123 #FAwI6BBbvOZ1PUnk #Hzyw@123
+  mqtt:
+    hostname: 47.106.189.255 #${app.smart.hostname} # 47.106.189.255（部署在183时，如果183的MQTT不能用，则用这个）
+    port: 1883
+    username: username
+    password: password
+  video-flow:
+    hostname: ${app.smart.hostname}
+    port: 18080
+  token:
+    hostname: ${app.smart.hostname}
+    port: 89
+  redis:
+    hostname: 47.106.189.255 #192.168.3.183 #${app.smart.hostname}
+    port: 6379
+    password: 123456
+  light:
+    hostname: ${app.smart.hostname}
+    port: 81
+  camera:
+    hostname: ${app.smart.hostname}
+    port: 82
+    internet:
+      hostname: ${app.smart.hostname}
+  screen:
+    hostname: ${app.smart.hostname}
+    port: 83
+    internet:
+      hostname: ${app.smart.hostname}
+  wifi:
+    hostname: ${app.smart.hostname}
+    port: 84
+  pole:
+    hostname: ${app.smart.hostname}
+    port: 85
+  unions:
+    hostname: ${app.smart.hostname}
+    port: 86
+  sensor:
+    hostname: ${app.smart.hostname}
+    port: 88
+  log:
+    hostname: ${app.smart.hostname}
+    port: 90
+  report:
+    hostname: ${app.smart.hostname}
+    port: 91
+  radar:
+    hostname: ${app.smart.hostname}
+    port: 92
+  charger:
+    hostname: ${app.smart.hostname}
+    port: 93
+  etc:
+    hostname: ${app.smart.hostname}
+    port: 181
+  alarm:
+    hostname: ${app.smart.hostname}
+    port: 94
+  scheduler:
+    hostname: ${app.smart.hostname}
+    port: 95
+  ftp:
+    hostname: 120.24.34.198
+    port: 8006
+spring:
+  main:
+    allow-bean-definition-overriding: true # mybatis与jpa多数据源引起重复bean 需放开容许重复定义bean
+  datasource:
+    url: jdbc:mysql://${app.db.hostname}:${app.db.port}/${app.name}?serverTimezone=GMT%2b8&useUnicode=true&characterEncoding=utf-8&useAffectedRows=true
+    username: ${app.db.username}
+    password: ${app.db.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mybatis:
+    mapper-locations: classpath:com/hzyw/basic/dao/mapper/*.xml
+    type-aliases-package: com.hzyw.basic.dao.mapper
+    configuration:
+      map-underscore-to-camel-case: true
+  jpa:
+    properties:
+      hibernate:
+        naming:
+          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        hbm2ddl:
+          auto: update
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        jdbc:
+          show-sql: true
+      time_zone: GMT+8
+    show-sql: true
+  mqtt:
+    username: ${app.mqtt.username}
+    password: ${app.mqtt.password}
+    url: tcp://${app.mqtt.hostname}:${app.mqtt.port}
+    clientSen.id: mqttCameraSenIdxx
+    clientRec.id: ${random.value}
+    default.topic: test1
+    completionTimeout: 10000
+  output:
+    ansi:
+      enabled: ALWAYS
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+logging:
+  level:
+    com.hzyw.basic.dao.mapper: debug
+  path: /usr/tmp/log/${app.name}
+
+swagger:
+  enabled: true
+  title: ${app.name}
+  description: ${app.description}-接口文档
+  terms-of-service-url: http://www.baidu.com
+  version: 0.1
+  base-package: com.hzyw.basic
+  authorization:
+    key-name: Authentication
+
+sdk:
+  callback:
+    url: http://${app.smart.hostname}/${app.${app.name}.port}/api # 回调时的接口，由应用平台实现
+    name: smart-apps
+  handlers:
+    include: default,sss
+  server:
+    url: http://${app.iot.hostname}:${app.iot.port}/deviceManager/ # 请求时的接口，由物联网平台实现
+    name: feign-provider
+
+aspect:
+  authority:
+    project-is-aspect: undefined
+  log-record:
+    project-is-aspect: undefined
+config:
+  principal-name: dev
+  url:
+    checkRule: http://${app.unions.hostname}:${app.unions.port}/api/unions/alarm/rule/check
+
+

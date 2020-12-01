@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hzyw.basic.dao.mapper.ProjectMapper" >
+  <resultMap id="BaseResultMap" type="com.hzyw.basic.dos.ProjectDO" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="projectName" property="projectName" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="district" property="district" jdbcType="VARCHAR" />
+    <result column="street" property="street" jdbcType="VARCHAR" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="MODIFY_TIME" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <!--<insert id="insert" parameterType="com.wechat.cwbt.pojo.AuProjectT" >-->
+    <!--insert into au_project_t (id, projectName, city, -->
+      <!--district, street, CREATE_TIME, -->
+      <!--MODIFY_TIME)-->
+    <!--values (#{id,jdbcType=INTEGER}, #{projectname,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, -->
+      <!--#{district,jdbcType=VARCHAR}, #{street,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, -->
+      <!--#{modifyTime,jdbcType=TIMESTAMP})-->
+  <!--</insert>-->
+  <!--<update id="updateByPrimaryKey" parameterType="com.wechat.cwbt.pojo.AuProjectT" >-->
+    <!--update au_project_t-->
+    <!--set projectName = #{projectname,jdbcType=VARCHAR},-->
+      <!--city = #{city,jdbcType=VARCHAR},-->
+      <!--district = #{district,jdbcType=VARCHAR},-->
+      <!--street = #{street,jdbcType=VARCHAR},-->
+      <!--CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},-->
+      <!--MODIFY_TIME = #{modifyTime,jdbcType=TIMESTAMP}-->
+    <!--where id = #{id,jdbcType=INTEGER}-->
+  <!--</update>-->
+
+  <select id="queryAuUserTotalCount" resultType="int">
+    SELECT count(1)  FROM au_project_t
+    WHERE 1=1
+    <if test="projectName!=null and projectName!=''">
+      AND  projectName like "%"#{projectName}"%"
+    </if>
+  </select>
+
+  <select id="queryProjectInfoByParameter" resultMap="BaseResultMap" >
+    select id, projectName, city, district, street, CREATE_TIME, MODIFY_TIME
+    from au_project_t U
+    WHERE 1=1
+    <if test="projectName!=null and projectName!=''">
+      AND projectName like "%"#{projectName}"%"
+    </if>
+    ORDER BY U.id  limit #{currentPage},#{pageSize}
+  </select>
+
+
+  <select id="queryAuProjectVOInfo" resultMap="BaseResultMap" >
+    select id, projectName, city, district, street, CREATE_TIME, MODIFY_TIME
+    from au_project_t
+    WHERE 1=1
+    <if test="projectVO.projectName!=null and projectVO.projectName!=''">
+      AND projectName like "%"#{projectVO.projectName}"%"
+    </if>
+    <if test="projectVO.id!=null">
+      AND CAST(id AS CHAR) LIKE CONCAT('%',#{projectVO.id},'%')
+    </if>
+  </select>
+
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, projectName, city, district, street, CREATE_TIME, MODIFY_TIME
+    from au_project_t
+  </select>
+
+
+  <update id="updateAuProjectVO">
+    update au_project_t
+    <set>
+      <if test="projectVO.projectName!=null and projectVO.projectName!=''">
+        projectName = #{projectVO.projectName,jdbcType=VARCHAR},
+      </if>
+      <if test="projectVO.city!=null and projectVO.city!=''">
+        city = #{projectVO.city,jdbcType=VARCHAR},
+      </if>
+      <if test="projectVO.district!=null and projectVO.district!=''">
+        district = #{projectVO.district,jdbcType=VARCHAR},
+      </if>
+      <if test="projectVO.street!=null and projectVO.street!=''">
+        street = #{projectVO.street,jdbcType=VARCHAR},
+      </if>
+      MODIFY_TIME=now()
+    </set>
+    <where>
+      <if test="projectVO.id!=null and projectVO.id!=''">
+        id = #{projectVO.id}
+      </if>
+    </where>
+  </update>
+
+
+  <delete id="deleteProjectByProjectId">
+      <foreach collection="list" index="index" item="projectId" open=""
+               separator=";" close="">
+        delete from au_project_t
+        where id=#{projectId}
+      </foreach>
+  </delete>
+
+  <insert id="insertProjectVO" parameterType="com.hzyw.basic.dos.ProjectDO">
+    insert into au_project_t (projectName, city,
+    district, street, CREATE_TIME,
+    MODIFY_TIME)
+    values (#{projectVO.projectName,jdbcType=VARCHAR}, #{projectVO.city,jdbcType=VARCHAR},
+    #{projectVO.district,jdbcType=VARCHAR}, #{projectVO.street,jdbcType=VARCHAR}, now(), now())
+  </insert>
+
+</mapper>

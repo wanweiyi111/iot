@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="com.hzyw.basic.vo.UserVO" >
+        <id column="USER_ID" property="id" jdbcType="INTEGER" />
+        <result column="USERNAME" property="userName" jdbcType="VARCHAR" />
+        <result column="REALNAME" property="realName" jdbcType="VARCHAR" />
+        <result column="PROJECT_ID" property="projectId" jdbcType="INTEGER" />
+        <result column="PASSWORD" property="passWord" jdbcType="VARCHAR" />
+        <result column="DEPT_ID" property="deptId" jdbcType="INTEGER" />
+        <result column="start_effective_period" property="startEffectivePeriod" jdbcType="TIMESTAMP" />
+        <result column="end_effective_period" property="endEffectivePeriod" jdbcType="TIMESTAMP" />
+        <result column="EMAIL" property="email" jdbcType="VARCHAR" />
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR" />
+
+        <result column="CAR_NUMBER" property="carNumber" jdbcType="VARCHAR" />
+        <result column="JOB_NUMBER" property="jobNumber" jdbcType="VARCHAR" />
+        <!--<result column="STATUS" property="status" jdbcType="CHAR" />-->
+        <!--<result column="LAST_LOGIN_TIME" property="lastLoginTime" jdbcType="TIMESTAMP" />-->
+        <!--<result column="SSEX" property="ssex" jdbcType="CHAR" />-->
+        <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+        <result column="AVATAR" property="avatar" jdbcType="VARCHAR" />
+        <!--<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />-->
+        <!--<result column="MODIFY_TIME" property="modifyTime" jdbcType="TIMESTAMP" />-->
+        <collection property="projectDOList" resultMap="projectMap"/>
+    </resultMap>
+
+    <resultMap id="projectMap" type="com.hzyw.basic.dos.ProjectDO" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="projectName" property="projectName" jdbcType="VARCHAR" />
+        <result column="city" property="city" jdbcType="VARCHAR" />
+        <result column="district" property="district" jdbcType="VARCHAR" />
+        <result column="street" property="street" jdbcType="VARCHAR" />
+        <result column="longitude" property="longitude" jdbcType="NUMERIC" />
+        <result column="latitude" property="latitude" jdbcType="DOUBLE" />
+        <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="MODIFY_TIME" property="modifyTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+
+    <select id="findAuUserTotalCount" resultType="int">
+        SELECT count(1)  FROM au_user_t
+        WHERE  STATUS='1'
+            <if test="userName!=null and userName!=''">
+              AND  USERNAME like "%"#{userName}"%"
+            </if>
+    </select>
+
+    <select id="queryByParameter" resultType="com.hzyw.basic.vo.UserVO">
+        SELECT
+                U.USER_ID id,
+                U.USERNAME userName,
+                U.REALNAME realName,
+                U.EMAIL email,
+                U.MOBILE mobile,
+                U.STATUS status,
+                U.LAST_LOGIN_TIME lastLoginTime,
+                U.SSEX ssex,
+                U.DESCRIPTION description,
+                U.AVATAR avatar,
+                U.CREATE_TIME createTime,
+                U.MODIFY_TIME modifyTime,
+                U.start_effective_period startEffectivePeriod,
+                U.end_effective_period  endEffectivePeriod,
+                U.DEPT_ID deptId,
+                U.PROJECT_ID projectId,
+                P.projectName projectName,
+                R.ROLE_ID roleId,
+                R.ROLE_NAME roleName,
+                D.DEPT_NAME  deptName
+            FROM au_user_t U
+            LEFT JOIN au_user_role_t  A ON U.USER_ID=A.USER_ID
+            LEFT JOIN au_project_t P ON P.id=U.PROJECT_ID
+            LEFT JOIN au_dept_t D ON D.DEPT_ID=U.DEPT_ID
+            LEFT JOIN au_role_t R ON R.ROLE_ID= A.ROLE_ID
+            WHERE  U.STATUS='1'
+              <if test="userName!=null and userName!=''">
+                   AND U.USERNAME like "%"#{userName}"%"
+                </if>
+            ORDER BY U.USER_ID  limit #{currentPage},#{pageSize}
+    </select>
+
+    <sql id="commonsql">
+        USER_ID id,
+        USERNAME userName,
+        PASSWORD passWord,
+        REALNAME realName,
+        PROJECT_ID projectId,
+        DEPT_ID deptId,
+        EMAIL email,
+        MOBILE mobile,
+        STATUS status,
+        LAST_LOGIN_TIME lastLoginTime,
+        SSEX ssex,
+        DESCRIPTION description,
+        AVATAR avatar,
+        CREATE_TIME createTime,
+        MODIFY_TIME modifyTime
+        FROM au_user_t
+    </sql>
+
+    <delete id="deleteByParameter" >
+        <foreach collection="list" index="index" item="userId" open=""
+                 separator=";" close="">
+            delete from au_user_t
+            where USER_ID=#{userId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <insert id="insertAuUserDO" useGeneratedKeys="true" keyProperty="id"  parameterType="com.hzyw.basic.dos.UserDO" >
+        insert into au_user_t
+        (
+            USERNAME,
+            PASSWORD,
+            REALNAME,
+            DEPT_ID,
+            PROJECT_ID,
+            EMAIL,
+            MOBILE,
+            STATUS,
+            LAST_LOGIN_TIME,
+            SSEX,
+            DESCRIPTION,
+            AVATAR,
+            start_effective_period,
+            end_effective_period,
+            CREATE_TIME,
+            MODIFY_TIME,
+            CAR_NUMBER,
+           JOB_NUMBER,
+            USER_TYPE
+        )
+        values (
+        #{auUser.userName,jdbcType=VARCHAR},
+        #{auUser.passWord,jdbcType=VARCHAR},
+        #{auUser.realName,jdbcType=VARCHAR},
+        #{auUser.deptId,jdbcType=NUMERIC},
+        #{auUser.projectId,jdbcType=NUMERIC},
+        #{auUser.email,jdbcType=VARCHAR},
+        #{auUser.mobile,jdbcType=VARCHAR},
+        '1',
+        #{auUser.lastLoginTime,jdbcType=DATE},
+        '2',
+        #{auUser.description,jdbcType=VARCHAR},
+        #{auUser.avatar,jdbcType=VARCHAR},
+         now(),
+        #{auUser.endEffectivePeriod},
+        now(),
+        now(),
+        #{auUser.carNumber},
+        #{auUser.jobNumber},
+        #{auUser.userType}
+        )
+    </insert>
+
+    <select id="checkUserRoleRelation" resultType="int" >
+        SELECT count(1)  FROM au_user_role_t
+        WHERE ID=#{userId,jdbcType=NUMERIC} AND ROLE_ID=#{roleId,jdbcType=NUMERIC}
+    </select>
+
+    <insert id="insertUserRoleRelation">
+        insert into au_user_role_t
+        (
+            USER_ID,
+            ROLE_ID
+        )
+        values (
+        #{userId,jdbcType=NUMERIC},
+        #{roleId,jdbcType=NUMERIC}
+        )
+    </insert>
+
+    <update id="updateByParameter" parameterType="com.hzyw.basic.dos.UserDO">
+        update au_user_t
+        <set>
+            <if test="auUser.passWord!=null and auUser.passWord!=''">
+                PASSWORD = #{auUser.passWord,jdbcType=VARCHAR},
+            </if>
+            <if test="auUser.deptId!=null">
+                DEPT_ID = #{auUser.deptId,jdbcType=NUMERIC},
+            </if>
+            <if test="auUser.projectId!=null">
+                PROJECT_ID = #{auUser.projectId,jdbcType=NUMERIC},
+            </if>
+            <if test="auUser.email!=null and auUser.email!=''">
+                EMAIL = #{auUser.email,jdbcType=VARCHAR},
+            </if>
+            <if test="auUser.mobile!=null and auUser.mobile!=''">
+                MOBILE = #{auUser.mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="auUser.status!=null and auUser.status!='' ">
+                STATUS = #{auUser.status,jdbcType=VARCHAR},
+            </if>
+            <if test="auUser.carNumber!=null and auUser.carNumber!='' ">
+                CAR_NUMBER = #{auUser.carNumber,jdbcType=VARCHAR},
+            </if>
+              MODIFY_TIME = now()
+        </set>
+        where
+        USERNAME = #{auUser.userName}
+    </update>
+
+    <select id="queryUserInfo" resultType="com.hzyw.basic.dos.UserDO">
+        SELECT
+            U.USER_ID id,
+            U.USERNAME userName,
+            U.REALNAME realName,
+            U.EMAIL email,
+            U.MOBILE mobile,
+            U.LAST_LOGIN_TIME lastLoginTime,
+            U.end_effective_period  endEffectivePeriod,
+            U.DEPT_ID deptId,
+            P.projectName projectName,
+            R.ROLE_NAME roleName,
+            D.DEPT_NAME  deptName
+            FROM au_user_t U
+            LEFT JOIN au_user_role_t  A ON U.USER_ID=A.ID
+            LEFT JOIN au_project_t P ON P.id=U.PROJECT_ID
+            LEFT JOIN au_dept_t D ON D.DEPT_ID=U.DEPT_ID
+            LEFT JOIN au_role_t R ON R.ROLE_ID= A.ROLE_ID
+            WHERE  U.STATUS='1'
+                <if test="auUser.id!=null">
+                    AND U.USER_ID = #{auUser.id,jdbcType=NUMERIC}
+                </if>
+                <if test="auUser.userName!=null and auUser.userName!=''">
+                   AND U.USERNAME = #{auUser.userName,jdbcType=VARCHAR}
+                </if>
+                <if test="auUser.userType!=null and auUser.userType!=''">
+                    AND U.USER_TYPE = #{auUser.userType,jdbcType=VARCHAR}
+                </if>
+                <!--<if test="auUser.passWord!=null and auUser.passWord!=''">-->
+                    <!--AND PASSWORD = #{auUser.passWord,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.deptId!=null">-->
+                    <!--AND DEPT_ID = #{auUser.deptId,jdbcType=NUMERIC}-->
+                <!--</if>-->
+                <!--<if test="auUser.projectId!=null">-->
+                    <!--AND PROJECT_ID = #{auUser.projectId,jdbcType=NUMERIC}-->
+                <!--</if>-->
+                <!--<if test="auUser.email!=null and auUser.email!=''">-->
+                    <!--AND EMAIL = #{auUser.email,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.mobile!=null and auUser.mobile!=''">-->
+                    <!--AND MOBILE = #{auUser.mobile,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.status!=null and auUser.status!='' ">-->
+                    <!--AND STATUS = #{auUser.status,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.lastLoginTime!=null">-->
+                    <!--AND LAST_LOGIN_TIME = #{auUser.lastLoginTime,jdbcType=DATE}-->
+                <!--</if>-->
+                <!--<if test="auUser.ssex!=null and auUser.ssex!='' ">-->
+                    <!--AND  SSEX = #{auUser.ssex,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.description!=null and auUser.description!=''">-->
+                    <!--AND DESCRIPTION = #{auUser.description,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.avatar!=null and auUser.avatar!=''">-->
+                    <!--AND AVATAR = #{auUser.avatar,jdbcType=VARCHAR}-->
+                <!--</if>-->
+                <!--<if test="auUser.startEffectivePeriod!=null">-->
+                    <!--AND start_effective_period = #{auUser.startEffectivePeriod,jdbcType=DATE}-->
+                <!--</if>-->
+                <!--<if test="auUser.endEffectivePeriod!=null">-->
+                    <!--AND end_effective_period = #{auUser.endEffectivePeriod,jdbcType=DATE}-->
+                <!--</if>-->
+                <!--<if test="auUser.createTime!=null">-->
+                    <!--AND  CREATE_TIME = #{auUser.createTime,jdbcType=DATE}-->
+                <!--</if>-->
+                <!--<if test="auUser.modifyTime!=null">-->
+                    <!--AND MODIFY_TIME = #{auUser.modifyTime,jdbcType=DATE}-->
+                <!--</if>-->
+
+    </select>
+
+
+    <update id="resetPassword">
+         update au_user_t
+          SET PASSWORD= #{auUser.passWord,jdbcType=VARCHAR}
+          WHERE USERNAME=#{auUser.userName,jdbcType=VARCHAR}
+                <if test="auUser.userType!=null and auUser.userType!=''">
+                    AND USER_TYPE = #{auUser.userType,jdbcType=VARCHAR}
+                </if>
+    </update>
+
+    <select id="selectUserByName" resultMap="BaseResultMap">
+        SELECT
+                U.USER_ID,
+                U.USERNAME,
+                U.PASSWORD,
+                U.REALNAME,
+                U.PROJECT_ID,
+                U.DEPT_ID,
+                U.EMAIL,
+                U.MOBILE,
+                U.CAR_NUMBER,
+                U.STATUS,
+                U.LAST_LOGIN_TIME,
+                U.SSEX,
+                U.DESCRIPTION,
+                U.AVATAR,
+                U.CREATE_TIME,
+                U.MODIFY_TIME,
+                P.id,
+                P.projectName,
+                P.city,
+                P.district,
+                P.street,
+                P.longitude,
+                P.latitude
+        FROM au_user_t U
+        LEFT JOIN au_project_t P ON P.id=U.PROJECT_ID
+        WHERE U.USERNAME=#{userName,jdbcType=VARCHAR}
+            <if test="userType!=null and userType!=''">
+                AND U.USER_TYPE = #{userType,jdbcType=VARCHAR}
+            </if>
+    </select>
+
+</mapper>

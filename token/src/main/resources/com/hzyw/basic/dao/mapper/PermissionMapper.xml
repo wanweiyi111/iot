@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.PermissionMapper">
+    <select id="selectByParameterCount" resultType="int">
+        SELECT count(1)  FROM au_permission_t
+        where
+              ISEnable='1'
+            <if test="permission.permissionName!=null and permission.permissionName!=''">
+               and PERMISSION_NAME like "%"#{permission.permissionName}"%"
+            </if>
+            <if test="permission.parentId!=null">
+                and  PARENT_ID = #{permission.parentId}
+            </if>
+            <if test="permission.type!=null and permission.type!=''">
+                and  type = #{permission.type}
+            </if>
+    </select>
+
+    <select id="selectByParameter"  resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+          <include refid="commonsql"></include>
+        where   P.ISEnable='1'
+            <if test="permission.permissionName!=null and permission.permissionName!=''">
+              and  P.PERMISSION_NAME like "%"#{permission.permissionName}"%"
+            </if>
+            <if test="permission.parentId!=null">
+                and  P.PARENT_ID = #{permission.parentId}
+            </if>
+            <if test="permission.type!=null and permission.type!=''">
+               and  P.type = #{permission.type}
+            </if>
+        ORDER BY MODIFY_TIME DESC limit #{currentPage},#{pageSize}
+    </select>
+
+    <select id="selectInfoByParentId" resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+        <include refid="commonsql"></include>
+        where   P.ISEnable='1'
+        <if test="parentId!=null">
+            and  P.PARENT_ID = #{parentId}
+        </if>
+
+    </select>
+
+
+    <select id="selectMenuList"  resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+        <include refid="commonsql"></include>
+        where
+             P.ISEnable='1'
+        <if test="type!=null and type!=''">
+            <choose>
+                <when test="type=='02'">
+                    and P.TYPE in ('0','2')
+                </when>
+                <otherwise>
+                    and P.TYPE = #{type,jdbcType=VARCHAR}
+                </otherwise>
+            </choose>
+        </if>
+
+    </select>
+
+    <update id="deleteByParameter" parameterType="java.util.List" >
+
+            update au_permission_t set ISEnable='0'
+            where PERMISSION_ID in
+        <foreach collection="list" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <insert id="insertPermission" useGeneratedKeys="true" keyProperty="id" parameterType="com.hzyw.basic.dos.PermissionDO" >
+        insert into au_permission_t
+        (   PARENT_ID,
+            PERMISSION_NAME,
+            PATH,
+            PERMS,
+            ICON,
+            APPID,
+            TYPE,
+            ORDER_NUM,
+            ISEnable,
+            CREATE_TIME,
+            MODIFY_TIME
+        )
+        values (
+        #{auPermission.parentId,jdbcType=NUMERIC},
+        #{auPermission.permissionName,jdbcType=VARCHAR},
+        #{auPermission.path,jdbcType=VARCHAR},
+        #{auPermission.perms,jdbcType=VARCHAR},
+        #{auPermission.icon,jdbcType=VARCHAR},
+        #{auPermission.appId,jdbcType=NUMERIC},
+        #{auPermission.type,jdbcType=VARCHAR},
+        #{auPermission.orderNum,jdbcType=NUMERIC},
+        '1',
+        now(),
+        now()
+        )
+    </insert>
+
+    <update id="updateByParameter" parameterType="com.hzyw.basic.dos.PermissionDO">
+        update au_permission_t
+        <set>
+            <if test="auPermission.permissionName!=null and auPermission.permissionName!=''">
+                PERMISSION_NAME = #{auPermission.permissionName,jdbcType=VARCHAR},
+            </if>
+            <if test="auPermission.parentId!=null">
+                PARENT_ID = #{auPermission.parentId,jdbcType=NUMERIC},
+            </if>
+            <if test="auPermission.path!=null and auPermission.path!=''">
+                PATH = #{auPermission.path,jdbcType=VARCHAR},
+            </if>
+            <if test="auPermission.perms!=null and auPermission.perms!=''">
+                PERMS = #{auPermission.perms,jdbcType=VARCHAR},
+            </if>
+            <if test="auPermission.icon!=null and auPermission.icon!=''">
+                ICON = #{auPermission.icon,jdbcType=VARCHAR},
+            </if>
+            <if test="auPermission.appId!=null">
+                APPID = #{auPermission.appId,jdbcType=NUMERIC},
+            </if>
+            <if test="auPermission.type!=null and auPermission.type!=''">
+                TYPE = #{auPermission.type,jdbcType=VARCHAR},
+            </if>
+            <if test="auPermission.orderNum!=null">
+                ORDER_NUM = #{auPermission.orderNum,jdbcType=NUMERIC},
+            </if>
+            MODIFY_TIME =now(),
+            ISEnable = '1'
+        </set>
+        <where>
+            <if test="auPermission.id!=null and auPermission.id!=''">
+                PERMISSION_ID = #{auPermission.id,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </update>
+
+    <sql id="commonsql">
+        P.PERMISSION_ID id,
+        P.PARENT_ID parentId,
+        P.PERMISSION_NAME permissionName,
+        P.PERMISSION_NAME menuName,
+        P.PATH path,
+        P.PERMS perms,
+        P.LEVEL level,
+        P.ICON icon,
+        P.APPID appId,
+        P.TYPE type,
+        P.ORDER_NUM orderNum,
+        P.ISEnable ISEnable,
+        P.CREATE_TIME createTime,
+        P.MODIFY_TIME modifyTime
+        FROM au_permission_t P
+    </sql>
+
+    <select id="selectPermissionByUser" resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+            DISTINCT(P.PERMISSION_ID) id,
+            P.PARENT_ID parentId,
+            P.PERMISSION_NAME permissionName,
+            P.PATH path,
+            P.PERMS perms,
+            P.ICON icon,
+            P.APPID appId,
+            P.TYPE type,
+            P.ORDER_NUM orderNum,
+            P.ISEnable ISEnable,
+            P.CREATE_TIME createTime,
+            P.MODIFY_TIME modifyTime
+        FROM
+            au_user_t U
+            INNER JOIN au_user_role_t A ON U.USER_ID = A.USER_ID
+            INNER JOIN au_role_permission_t E ON E.ROLE_ID = A.ROLE_ID
+            INNER JOIN au_permission_t P ON P.PERMISSION_ID = E.PERMISSION_ID
+        WHERE U.USERNAME=#{username}
+             and P.ISEnable='1'
+        <if test="type !=0 or type ==null or type =='' ">
+            and P.perms IS NOT NULL
+        </if>
+
+        <if test="type!=null and type!=''">
+           and P.type = #{type}
+        </if>
+    </select>
+
+    <select id="selectPermissionByRoleId" resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+            <include refid="commonsql"></include>
+            LEFT JOIN au_role_permission_t RP ON P.PERMISSION_ID = RP.PERMISSION_ID
+            LEFT JOIN au_role_t R ON R.ROLE_ID = RP.ROLE_ID
+        WHERE R.ROLE_ID = #{roleId,jdbcType=VARCHAR}
+              and P.ISEnable='1'
+    </select>
+
+    <select id="checkPermissionOrderNum" resultType="java.lang.Integer">
+        select COUNT(1) from au_permission_t
+        WHERE
+          ISEnable='1'
+        <if test="permission.parentId!=null">
+           AND PARENT_ID = #{permission.parentId}
+        </if>
+        <if test="permission.id!=null">
+            <if test="permission.permissionName!=null and permission.permissionName!=''">
+                AND  PERMISSION_NAME = #{permission.permissionName,jdbcType=VARCHAR}
+            </if>
+            AND PERMISSION_ID != #{permission.id}
+        </if>
+        <if test="permission.orderNum!=null">
+            AND ORDER_NUM = #{permission.orderNum}
+        </if>
+    </select>
+
+    <select id="checkPermission" resultType="com.hzyw.basic.dos.PermissionDO">
+        SELECT
+        <include refid="commonsql"></include>
+        WHERE
+         P.ISEnable='1'
+        <if test="permission.parentId!=null">
+            AND P.PARENT_ID = #{permission.parentId}
+        </if>
+        <if test="permission.permissionName!=null and permission.permissionName!=''">
+           AND  P.PERMISSION_NAME = #{permission.permissionName,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+
+    <delete id="deleteProjectDevice">
+           delete from au_project_device_t
+        where USER_ID=#{userId}
+              AND PROJECT_ID=#{projectId}
+    </delete>
+
+
+    <insert id="insertProjectDevice" parameterType="java.util.List" >
+
+        insert into au_project_device_t (USER_ID,USERNAME,PROJECT_ID,EQUIPMENT_CODE,LOCATION,CREATE_TIME,MODIFY_TIME)
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            ( #{item.userId},#{item.userName},#{item.projectId},
+            #{item.equipmentId},#{item.location},now(),now())
+        </foreach>
+    </insert>
+
+
+    <select id="getProjectDeviceByUserName" resultType="com.hzyw.basic.dos.ProjectDeviceDO">
+          select
+                USER_ID userId,
+                USERNAME userName,
+                 PROJECT_ID projectId,
+                EQUIPMENT_CODE equipmentId,
+                LOCATION location,
+                CREATE_TIME createTime,
+                MODIFY_TIME modifyTime
+          from au_project_device_t
+          where 1=1
+                <if test="userName!=null and userName!=''">
+                    AND USERNAME=#{userName}
+                </if>
+                 <if test="projectId!=null and projectId!=''">
+                    AND PROJECT_ID = #{projectId}
+                </if>
+
+    </select>
+</mapper>

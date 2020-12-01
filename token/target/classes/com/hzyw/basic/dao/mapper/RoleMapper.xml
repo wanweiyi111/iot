@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.RoleMapper">
+
+    <select id="findAuRoleTotalCount" resultType="int">
+        SELECT count(1)  FROM au_role_t
+        <where>
+            <if test="roleName!=null and roleName!=''">
+                ROLE_NAME like "%"#{roleName}"%"
+            </if>
+        </where>
+    </select>
+
+    <select id="findAuRoleInfo" resultType="com.hzyw.basic.dos.RoleDO">
+        SELECT
+        <include refid="commonsql"></include>
+        <where>
+            <if test="auRole.roleName!=null and auRole.roleName!=''">
+                ROLE_NAME =#{auRole.roleName}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByParameter" resultType="com.hzyw.basic.dos.RoleDO">
+        SELECT
+        <include refid="commonsql"></include>
+        <where>
+            <if test="roleName!=null and roleName!=''">
+                ROLE_NAME like "%"#{roleName}"%"
+            </if>
+            <if test="roleId!=null and roleId!=''">
+                ROLE_ID like "%"#{roleId}"%"
+            </if>
+        </where>
+        ORDER BY MODIFY_TIME DESC limit #{currentPage},#{pageSize}
+    </select>
+
+    <select id="selectRoleById" resultType="com.hzyw.basic.dos.RoleDO">
+        SELECT
+        <include refid="commonsql"></include>
+        <where>
+            <if test="roleId!=null and roleId!=''">
+                ROLE_ID = #{roleId,jdbcType=VARCHAR}
+            </if>
+            <if test="roleName!=null and roleName!=''">
+                ROLE_NAME =#{roleName}
+            </if>
+        </where>
+        ORDER BY MODIFY_TIME DESC
+    </select>
+
+    <sql id="commonsql">
+        ROLE_ID roleId,
+        ROLE_NAME roleName,
+        APP_ID appId,
+        REMARK remark,
+        CREATE_TIME createTime,
+        MODIFY_TIME modifyTime,
+        isEnable isEnable
+        FROM au_role_t
+    </sql>
+
+    <delete id="deleteByParameter" >
+        <foreach collection="list" index="index" item="roleId" open=""
+                 separator=";" close="">
+            delete from au_role_t
+            where ROLE_ID=#{roleId,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <insert id="insertAuRoleDO" useGeneratedKeys="true" keyProperty="roleId" parameterType="com.hzyw.basic.dos.RoleDO" >
+        insert ignore au_role_t
+        (
+            ROLE_NAME, 
+            APP_ID, 
+            REMARK, 
+            CREATE_TIME, 
+            MODIFY_TIME, 
+            isEnable 
+        )
+        values (
+        #{auRole.roleName,jdbcType=VARCHAR},
+        #{auRole.appId,jdbcType=VARCHAR},
+        #{auRole.remark,jdbcType=VARCHAR},
+        now(),
+        now(),
+        '1'
+        )
+    </insert>
+
+    <update id="updateByParameter" parameterType="com.hzyw.basic.dos.RoleDO">
+        update au_role_t
+        <set>
+            <if test="auRole.roleName!=null and auRole.roleName!=''">
+                ROLE_NAME = #{auRole.roleName,jdbcType=VARCHAR},
+            </if>
+            <if test="auRole.appId!=null and auRole.appId!=''">
+                APP_ID = #{auRole.appId,jdbcType=VARCHAR},
+            </if>
+            <if test="auRole.remark!=null and auRole.remark!=''">
+                REMARK = #{auRole.remark,jdbcType=VARCHAR},
+            </if>
+            isEnable='1',
+            MODIFY_TIME = now()
+        </set>
+        <where>
+            <if test="auRole.roleId!=null and auRole.roleId!=''">
+                ROLE_ID = #{auRole.roleId}
+            </if>
+        </where>
+    </update>
+
+    <select id="selectAllRole" resultType="com.hzyw.basic.dos.RoleDO">
+        SELECT
+        <include refid="commonsql"></include>
+    </select>
+
+    <select id="selectRoleByUser" resultType="com.hzyw.basic.dos.RoleDO">
+        SELECT
+                R.ROLE_NAME roleName,
+                R.APP_ID appId,
+                R.REMARK remark,
+                R.CREATE_TIME createTime,
+                R.MODIFY_TIME modifyTime
+        FROM au_user_t U
+        INNER JOIN au_user_role_t A ON U.USER_ID=A.USER_ID
+        INNER JOIN au_role_t R ON R.ROLE_ID= A.ROLE_ID
+        WHERE U.USERNAME=#{username}
+    </select>
+
+</mapper>

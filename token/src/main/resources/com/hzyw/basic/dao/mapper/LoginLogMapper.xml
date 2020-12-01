@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.hzyw.basic.dao.mapper.LoginLogMapper">
+    <select id="findAuLoginLogTotalCount" resultType="int">
+        SELECT count(1)  FROM au_login_log_t
+        <where>
+            <if test="userName!=null and userName!=''">
+                USERNAME like "%"#{userName}"%"
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectByParameter"  resultType="com.hzyw.basic.dos.LoginLogDO">
+        SELECT
+        <include refid="commonsql"></include>
+        <where>
+            <if test="userName!=null and userName!=''">
+                USERNAME like "%"#{userName}"%"
+            </if>
+        </where>
+        ORDER BY LOGIN_TIME DESC limit #{currentPage},#{pageSize}
+    </select>
+
+    <sql id="commonsql">
+        USERNAME userName,
+        LOGIN_TIME loginTime,
+        IP ip,
+        LOCATION location
+        FROM au_login_log_t
+    </sql>
+
+
+    <insert id="insertLoginLogDO" parameterType="com.hzyw.basic.dos.LoginLogDO" >
+        insert into au_login_log_t
+        (
+        USERNAME,
+        LOGIN_TIME,
+        IP,
+        LOCATION
+        )
+        values (
+        #{auLoginLog.userName,jdbcType=VARCHAR},
+        #{auLoginLog.loginTime,jdbcType=DATE},
+        #{auLoginLog.ip,jdbcType=VARCHAR},
+        #{auLoginLog.location,jdbcType=VARCHAR}
+        )
+    </insert>
+
+</mapper>
